@@ -1,0 +1,44 @@
+ let db = Firestore.firestore()
+ let settings = db.settings
+ db.settings = settings
+
+func getCompanyCreds(email: String) {
+        
+        db.collection("members").whereField("email", isEqualTo: email).getDocuments { (memberSnapshot, error) in
+            if error != nil {
+                 let alert = UIAlertController(title: "Error", message: error as? String, preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action) in
+                            alert.dismiss(animated: true, completion: nil)
+                        }))
+                        self.present(alert, animated: true, completion: nil)
+            }
+            else {
+                for document in ((memberSnapshot?.documents)!) {
+                    self.companyId = document.data()["companyid"] as? String
+                    self.docID = document.documentID
+                    self.save(objectToSave: self.docID!, saveAtKey: "memberId")
+                    self.save(objectToSave: self.companyId!, saveAtKey: "companyId")
+                }
+            }
+            self.setMemberIdVia(email: email)
+        }
+    }
+    
+func setMemberIdVia(email: String) {
+      
+        let memberId = self.fetchMemberId()
+        
+        db.collection("members").document(memberId).updateData(["memberid" : memberId]) { error in
+            if let error = error {
+                let alert = UIAlertController(title: "Error", message: error as? String, preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action) in
+                    alert.dismiss(animated: true, completion: nil)
+                }))
+            } else {
+                
+                print("member id was updated successfully with: \(memberId)")
+
+            }
+        }
+
+    }
